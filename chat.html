@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>History Message</title>
+    <style>
+        /* 全局样式 */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-image: url('https://bpic.588ku.com/back_our/20210203/bg/641cf67960507.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        /* 标题样式 */
+        h1 {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* 表单容器样式 */
+        form {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 输入框样式 */
+        input[type="text"],
+        input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* 按钮样式 */
+        button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        /* 数据容器样式 */
+        #data-container {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 历史记录部分 -->
+    <h1>History Message</h1>
+    <div id="data-container"></div>
+    <form id="group-form">
+        <label for="group_id">Group ID:</label>
+        <input type="text" id="group_id" name="group_id">
+    </form>
+
+    <!-- 发送消息部分 -->
+    <h1>Send Message</h1>
+    <form id="message-form">
+        <label for="content">Message Content:</label>
+        <input type="text" id="content" name="content"><br><br>
+
+        <label for="receiver">Receiver ID:</label>
+        <input type="text" id="receiver" name="receiver"><br><br>
+
+        <label for="timestamp">Timestamp:</label>
+        <input type="text" id="timestamp" name="timestamp"><br><br>
+
+        <button type="submit">Send</button>
+    </form>
+
+    <!-- 删除消息部分 -->
+    <h1>Delete Message</h1>
+    <form id="message-delete">
+        <label for="id">Message ID:</label>
+        <input type="text" id="id" name="id"><br><br>
+
+        <button type="submit">Delete</button>
+    </form>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 表单提交事件
+            $("#message-delete").submit(function(event) {
+                event.preventDefault(); // 阻止表单默认提交行为
+
+                var formData = $(this).serialize(); // 序列化表单数据
+
+                // 删除消息
+                $.ajax({
+                    url: "/delete_message",
+                    method: "POST",
+                    data: formData,
+                    success: function(response) {
+                        console.log("Message deleted successfully!");
+                        // 在这里可以添加其他操作,例如显示成功消息或刷新数据等
+                    },
+                    error: function() {
+                        console.log("Failed to delete the message.");
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // 表单提交事件
+            $("#message-form").submit(function(event) {
+                event.preventDefault(); // 阻止表单默认提交行为
+
+                var formData = $(this).serialize(); // 序列化表单数据
+
+                // 发送消息
+                $.ajax({
+                    url: "/send_message",
+                    method: "POST",
+                    data: formData,
+                    success: function(response) {
+                        console.log("Message sent successfully!");
+                        // 在这里可以添加其他操作,例如显示成功消息或刷新数据等
+                    },
+                    error: function() {
+                        console.log("Failed to send the message.");
+                    }
+                });
+            });
+
+            // 获取当前时间并填充到时间输入字段 (datetime 格式)
+            var timeInput = document.getElementById("timestamp");
+            var currentTime = new Date();
+            var formattedDateTime = currentTime.toISOString().slice(0, 19).replace("T", " ");
+            timeInput.value = formattedDateTime;
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // 定义获取数据的函数
+            function fetchData() {
+                var groupId = $("#group_id").val(); // 获取群聊ID
+
+                // 从后端获取数据
+                $.ajax({
+                    url: "/get_chat_history?group_id=" + groupId,  // 替换为你的后端接口URL,并指定群聊ID
+                    method: "GET",
+                    success: function(response) {
+                        if (response.status === "success") {
+                            var data = response.data;
+                            displayData(data);
+                        } else {
+                            console.log("Failed to retrieve data from the backend.");
+                        }
+                    },
+                    error: function() {
+                        console.log("Failed to retrieve data from the backend.");
+                    }
+                });
+            }
+
+            // 表单提交事件
+            $("#group-form").submit(function(event) {
+                event.preventDefault(); // 阻止表单默认提交行为
+                fetchData();
+            });
+
+            // 初始化加载数据
+            fetchData();
+
+            // 定时刷新数据
+            setInterval(fetchData, 500); // 每隔0.5秒刷新一次数据
+
+            // 显示数据
+            function displayData(data) {
+                var dataContainer = $("#data-container");
+                dataContainer.empty();
+
+                // 创建一个表格显示数据
+                var table = $("<table>");
+                var thead = $("<thead><tr><th>ID</th><th>Content</th><th>Sender</th><th>Receiver</th><th>Timestamp</th></tr></thead>");
+                var tbody = $("<tbody>");
+
+                data.forEach(function(item) {
+                    var row = $("<tr>");
+                    var idCell = $("<td>").text(item.id);
+                    var contentCell = $("<td>").text(item.content);
+                    var senderCell = $("<td>").text(item.sender);
+                    var receiverCell = $("<td>").text(item.receiver);
+                    var timestampCell = $("<td>").text(item.timestamp);
+
+                    row.append(idCell, contentCell, senderCell, receiverCell, timestampCell);
+                    tbody.append(row);
+                });
+
+                table.append(thead, tbody);
+                dataContainer.append(table);
+            }
+        });
+    </script>
+</body>
+</html>
